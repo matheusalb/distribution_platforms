@@ -33,9 +33,9 @@ func (Requestor) Invoke(inv shared.Invocation) []interface{} {
 
 	crh.Send(marshalledPackage)
 	msg := crh.Receive()
-	unmarshalledMsg := marshall.Unmarshall(msg)
+	unmarshalledPackage := marshall.Unmarshall(msg)
 
-	r := unmarshalledMsg.PackBody.Msg.BodyMsg.Body
+	r := unmarshalledPackage.PackBody.Msg.BodyMsg.Body
 
 	return r
 }
