@@ -6,6 +6,7 @@ type MessageHeader struct {
 	ResponseExpected bool
 	ObjectKey        int
 	Operation        string
+	Status           int
 }
 
 type MessageBody struct {

@@ -44,7 +44,7 @@ func (Invoker) Invoke() {
 		}
 
 		msgHeader := miop.MessageHeader{
-			Context: "Response", RequestId: 0,
+			Context: "Response", RequestId: 0, Status: 1,
 		}
 
 		msgBody := miop.MessageBody{Body: params}
