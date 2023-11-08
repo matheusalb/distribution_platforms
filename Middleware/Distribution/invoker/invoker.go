@@ -49,7 +49,7 @@ func (Invoker) Invoke() {
 
 		msgBody := miop.MessageBody{Body: params}
 
-		packHeader := miop.PacketHeader{Version: "1.0", ByteOrder: true, MessageType: shared.MIOP_REQUEST, Magic: "MIOP"}
+		packHeader := miop.PacketHeader{Version: "1.0", ByteOrder: true, MessageType: shared.MIOP_REPLY, Magic: "MIOP"}
 		packBody := miop.PacketBody{Msg: miop.Message{HeaderMsg: msgHeader, BodyMsg: msgBody}}
 
 		pckg := miop.Packet{PackHeader: packHeader, PackBody: packBody}
