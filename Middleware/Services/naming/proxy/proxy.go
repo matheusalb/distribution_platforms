@@ -22,7 +22,7 @@ func (NamingProxy) Register(p1 string, proxy interface{}) bool {
 	inv := aux.Invocation{Host: namingproxy.Host, Port: namingproxy.Port, Request: request}
 
 	// invoke requestor
-	req := requestor.Requestor{}
+	req := requestor.NewRequestor()
 	ter := req.Invoke(inv) //.([]interface{})
 
 	return ter[0].(bool)

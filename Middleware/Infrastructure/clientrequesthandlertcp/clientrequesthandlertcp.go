@@ -9,8 +9,8 @@ import (
 )
 
 type ClientRequestHandlerTCP struct {
-	hostToConn string
-	portToConn int
+	HostToConn string
+	PortToConn int
 	clientConn net.Conn
 }
 
@@ -26,8 +26,8 @@ func checkError(err error) {
 func NewClientRequestHandlerTCP(hostToConn string, portToConn int) *ClientRequestHandlerTCP {
 	// Função para criar o ClientRequestHandlerTCP
 	crh := new(ClientRequestHandlerTCP)
-	crh.hostToConn = hostToConn
-	crh.portToConn = portToConn
+	crh.HostToConn = hostToConn
+	crh.PortToConn = portToConn
 	crh.clientConn = nil
 
 	return crh
@@ -36,10 +36,14 @@ func NewClientRequestHandlerTCP(hostToConn string, portToConn int) *ClientReques
 func (crh *ClientRequestHandlerTCP) Connection() {
 	// Função para criar a conexão com o servidor
 
+	if crh.clientConn != nil {
+		return
+	}
+
 	var conn net.Conn
 	var err error
 	for {
-		conn, err = net.Dial("tcp", crh.hostToConn+":"+strconv.Itoa(crh.portToConn))
+		conn, err = net.Dial("tcp", crh.HostToConn+":"+strconv.Itoa(crh.PortToConn))
 		if err == nil {
 			break
 		}
@@ -81,4 +85,10 @@ func (crh *ClientRequestHandlerTCP) Receive() []byte {
 	checkError(err)
 
 	return msgFromServer
+}
+
+func (crh *ClientRequestHandlerTCP) Close() {
+	// Função para fechar a conexão com o servidor
+	crh.clientConn.Close()
+	crh.clientConn = nil
 }

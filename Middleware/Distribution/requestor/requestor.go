@@ -10,13 +10,26 @@ import (
 
 // Requestor ...
 
-type Requestor struct{}
+type Requestor struct {
+	crh *clientrequesthandlertcp.ClientRequestHandlerTCP
+}
+
+func (requestor *Requestor) initClientRequestHandlerTCP(Host string, Port int) {
+	requestor.crh = clientrequesthandlertcp.NewClientRequestHandlerTCP(Host, Port)
+}
+
+func NewRequestor() Requestor {
+	return Requestor{crh: nil}
+}
 
 // Invoke ...
-func (Requestor) Invoke(inv aux.Invocation) []interface{} {
+func (requestor *Requestor) Invoke(inv aux.Invocation) []interface{} {
 
 	marshall := marshaller.Marshaller{}
-	crh := clientrequesthandlertcp.NewClientRequestHandlerTCP(inv.Host, inv.Port)
+
+	if requestor.crh == nil {
+		requestor.initClientRequestHandlerTCP(inv.Host, inv.Port)
+	}
 
 	msgHeader := miop.MessageHeader{
 		Context: "Invoke", RequestId: 0,
@@ -32,11 +45,18 @@ func (Requestor) Invoke(inv aux.Invocation) []interface{} {
 
 	marshalledPackage := marshall.Marshall(pckg)
 
-	crh.Send(marshalledPackage)
-	msg := crh.Receive()
+	requestor.crh.Send(marshalledPackage)
+	msg := requestor.crh.Receive()
 	unmarshalledPackage := marshall.Unmarshall(msg)
 
 	r := unmarshalledPackage.PackBody.Msg.BodyMsg.Body
 
 	return r
+}
+
+func (request *Requestor) Close(inv aux.Invocation) {
+	request.Invoke(inv)
+
+	request.crh.Close()
+	request.crh = nil
 }

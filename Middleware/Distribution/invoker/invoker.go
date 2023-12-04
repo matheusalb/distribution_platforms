@@ -39,10 +39,14 @@ func (invoker Invoker) Invoke() {
 		pck := marshall.Unmarshall(msgBytes)
 		op := pck.PackBody.Msg.HeaderMsg.Operation
 
+		close := false
 		switch op {
 		case "Download":
 			book := readBook(pck.PackBody.Msg.BodyMsg.Body[0].(string))
 			params[0] = book
+		case "Close":
+			params[0] = "Closed Connection"
+			close = true
 		}
 
 		msgHeader := miop.MessageHeader{
@@ -59,5 +63,8 @@ func (invoker Invoker) Invoke() {
 		msgToClientBytes := marshall.Marshall(pckg)
 
 		srh.Send(msgToClientBytes)
+		if close {
+			srh.CloseConn()
+		}
 	}
 }

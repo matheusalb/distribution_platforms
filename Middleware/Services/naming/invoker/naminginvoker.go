@@ -60,5 +60,6 @@ func (NamingInvoker) Invoke() {
 
 		// send reply packet
 		srhImpl.Send(msgToClientBytes)
+		srhImpl.CloseConn()
 	}
 }

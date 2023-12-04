@@ -27,15 +27,24 @@ func main() {
 	fmt.Println("Running Client...")
 	namingProxy := proxy.NamingProxy{}
 
-	clientproxy_tmp := namingProxy.Lookup("BookSystem")
-	fmt.Println(clientproxy_tmp)
+	clientProxy := namingProxy.Lookup("BookSystem").(clientproxy.ClientProxyBookSystem)
 
-	clientProxy := clientproxy_tmp.(clientproxy.ClientProxyBookSystem)
+	defer func(clientProxy *clientproxy.ClientProxy) {
+		fmt.Println("Closing Client...")
+		clientProxy.Close()
+	}(&clientProxy.Proxy)
+
 	var nomeLivro string
-	// clientproxy := clientproxy.NewClientProxy(shared.N_HOST_SERVIDOR, shared.N_PORT_SERVIDOR, 1)
 
-	fmt.Println("Digite o nome do Livro Desejado: ")
-	fmt.Scanln(&nomeLivro)
-	book := clientProxy.DownloadBook(nomeLivro)
-	writeBook(nomeLivro, book)
+	for {
+		fmt.Println("Digite o nome do Livro Desejado: ")
+		fmt.Scanln(&nomeLivro)
+		if nomeLivro == "exit" {
+			break
+		}
+
+		book := clientProxy.DownloadBook(nomeLivro)
+		fmt.Println(book[1:20])
+	}
+	// writeBook(nomeLivro, book)
 }
