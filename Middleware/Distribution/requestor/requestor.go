@@ -1,6 +1,7 @@
 package requestor
 
 import (
+	aux "Middleware/Auxiliar"
 	"Middleware/Distribution/marshaller"
 	"Middleware/Distribution/miop"
 	clientrequesthandlertcp "Middleware/Infrastructure/clientrequesthandlertcp"
@@ -12,7 +13,7 @@ import (
 type Requestor struct{}
 
 // Invoke ...
-func (Requestor) Invoke(inv shared.Invocation) []interface{} {
+func (Requestor) Invoke(inv aux.Invocation) []interface{} {
 
 	marshall := marshaller.Marshaller{}
 	crh := clientrequesthandlertcp.NewClientRequestHandlerTCP(inv.Host, inv.Port)
