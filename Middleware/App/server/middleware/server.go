@@ -20,7 +20,7 @@ func main() {
 	// Registro no Serviço de Nomes
 	namingProxy.Register("BookSystem", clientProxyBookSystem)
 
-	invoker := invoker.Invoker{}
+	invoker := invoker.Invoker{Port: port}
 
 	invoker.Invoke()
 }

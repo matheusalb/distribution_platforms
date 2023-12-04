@@ -10,7 +10,9 @@ import (
 	"os"
 )
 
-type Invoker struct{}
+type Invoker struct {
+	Port int
+}
 
 func readBook(nomeLivro string) string {
 	file, err := os.Open("./books/" + nomeLivro + ".txt")
@@ -26,8 +28,8 @@ func readBook(nomeLivro string) string {
 	return string(content)
 }
 
-func (Invoker) Invoke() {
-	srh := serverrequesthandlertcp.NewServerRequestHandlerTCP(shared.N_HOST_SERVIDOR, shared.N_PORT_SERVIDOR)
+func (invoker Invoker) Invoke() {
+	srh := serverrequesthandlertcp.NewServerRequestHandlerTCP(shared.N_HOST_SERVIDOR, invoker.Port)
 	marshall := marshaller.Marshaller{}
 
 	params := make([]interface{}, 1)

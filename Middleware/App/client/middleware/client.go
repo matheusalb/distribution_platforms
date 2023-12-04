@@ -2,13 +2,13 @@ package main
 
 import (
 	"Middleware/Distribution/clientproxy"
-	shared "Middleware/Shared"
+	"Middleware/Services/naming/proxy"
 	"bufio"
 	"fmt"
 	"os"
 )
 
-func writeBook(title string, book []byte) {
+func writeBook(title string, book string) {
 	file, err := os.Create("./books/" + title + ".txt")
 	if err != nil {
 		fmt.Println(err)
@@ -16,7 +16,7 @@ func writeBook(title string, book []byte) {
 	defer file.Close()
 
 	writer := bufio.NewWriter(file)
-	_, err = writer.Write(book)
+	_, err = writer.Write([]byte(book))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -24,11 +24,18 @@ func writeBook(title string, book []byte) {
 }
 
 func main() {
+	fmt.Println("Running Client...")
+	namingProxy := proxy.NamingProxy{}
+
+	clientproxy_tmp := namingProxy.Lookup("BookSystem")
+	fmt.Println(clientproxy_tmp)
+
+	clientProxy := clientproxy_tmp.(clientproxy.ClientProxyBookSystem)
 	var nomeLivro string
-	clientproxy := clientproxy.NewClientProxy(shared.N_HOST_SERVIDOR, shared.N_PORT_SERVIDOR, 1)
+	// clientproxy := clientproxy.NewClientProxy(shared.N_HOST_SERVIDOR, shared.N_PORT_SERVIDOR, 1)
 
 	fmt.Println("Digite o nome do Livro Desejado: ")
 	fmt.Scanln(&nomeLivro)
-	book := clientproxy.DownloadBook(nomeLivro)
+	book := clientProxy.DownloadBook(nomeLivro)
 	writeBook(nomeLivro, book)
 }

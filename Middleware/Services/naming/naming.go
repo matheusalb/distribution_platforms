@@ -2,6 +2,7 @@ package naming
 
 import (
 	"Middleware/Distribution/clientproxy"
+	"fmt"
 )
 
 type NamingService struct {
@@ -24,11 +25,12 @@ func (naming *NamingService) Register(name string, proxy clientproxy.ClientProxy
 		r = true
 	}
 
+	fmt.Println(naming.Repository)
 	return r
 }
 
 func (naming NamingService) Lookup(name string) clientproxy.ClientProxy {
-
+	fmt.Println(naming.Repository[name])
 	return naming.Repository[name]
 }
 

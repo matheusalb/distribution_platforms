@@ -3,6 +3,8 @@ package clientproxy
 import (
 	aux "Middleware/Auxiliar"
 	"Middleware/Distribution/requestor"
+	"fmt"
+	"reflect"
 )
 
 type ClientProxy struct {
@@ -21,11 +23,13 @@ func NewClientProxy(host string, port int, id int) ClientProxy {
 }
 
 func NewClientProxyBookSystem(host string, port int, id int) ClientProxyBookSystem {
+	typeName := reflect.TypeOf(ClientProxyBookSystem{}).String()
+	fmt.Println(typeName)
 	return ClientProxyBookSystem{
-		ClientProxy{Host: host, Port: port, Id: id}}
+		ClientProxy{TypeName: typeName, Host: host, Port: port, Id: id}}
 }
 
-func (cp *ClientProxyBookSystem) DownloadBook(bookName string) []byte {
+func (cp *ClientProxyBookSystem) DownloadBook(bookName string) string {
 	params := make([]interface{}, 1)
 	params[0] = bookName
 
@@ -36,5 +40,5 @@ func (cp *ClientProxyBookSystem) DownloadBook(bookName string) []byte {
 	req := requestor.Requestor{}
 	r := req.Invoke(inv)
 
-	return r[0].([]byte)
+	return r[0].(string)
 }
