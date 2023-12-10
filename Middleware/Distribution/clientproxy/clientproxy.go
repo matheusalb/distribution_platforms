@@ -32,12 +32,11 @@ func (cp *ClientProxyBookSystem) DownloadBook(bookName string) string {
 	params := make([]interface{}, 1)
 	params[0] = bookName
 
-	request := aux.Request{Op: "Download", Params: params}
+	request := aux.Request{Op: "DownloadBook", Params: params}
 
 	inv := aux.Invocation{Host: cp.Proxy.Host, Port: cp.Proxy.Port, Request: request}
 
 	r := cp.Proxy.requestor.Invoke(inv)
-
 	return r[0].(string)
 }
 

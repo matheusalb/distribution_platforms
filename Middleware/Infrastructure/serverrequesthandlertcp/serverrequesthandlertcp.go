@@ -42,19 +42,19 @@ func NewServerRequestHandlerTCP(serverHost string, serverPort int) ServerRequest
 	return *srh
 }
 
-func (srh *ServerRequestHandlerTCP) Accept() net.Conn {
+func (srh *ServerRequestHandlerTCP) Accept() {
 	// Função para aceitar conexão do cliente
 	conn, err := srh.ListenerServer.Accept()
 	checkError(err)
 
-	return conn
+	srh.conn = conn
 }
 
 func (srh *ServerRequestHandlerTCP) Receive() []byte {
 	// Função para receber mensagem do cliente
 
 	if srh.conn == nil {
-		srh.conn = srh.Accept()
+		srh.Accept()
 	}
 
 	sizeMsgFromClient := make([]byte, 4)

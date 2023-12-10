@@ -3,9 +3,11 @@ package clientrequesthandlertcp
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strconv"
+	"time"
 )
 
 type ClientRequestHandlerTCP struct {
@@ -35,9 +37,21 @@ func NewClientRequestHandlerTCP(hostToConn string, portToConn int) *ClientReques
 
 func (crh *ClientRequestHandlerTCP) Connection() {
 	// Função para criar a conexão com o servidor
+	isActive := func(c net.Conn) bool {
+		one := []byte{}
+		c.SetReadDeadline(time.Now().Add(1 * time.Millisecond))
+		_, err := c.Read(one)
+		if err == io.EOF {
+			return false
+		}
+		c.SetReadDeadline(time.Time{}) // Remover o timeout
+		return true
+	}
 
 	if crh.clientConn != nil {
-		return
+		if isActive(crh.clientConn) {
+			return
+		}
 	}
 
 	var conn net.Conn

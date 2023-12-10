@@ -1,37 +1,24 @@
 package invoker
 
 import (
+	"Middleware/Distribution/lifecyclemanagement"
 	"Middleware/Distribution/marshaller"
 	"Middleware/Distribution/miop"
 	"Middleware/Infrastructure/serverrequesthandlertcp"
 	shared "Middleware/Shared"
-	"fmt"
-	"io/ioutil"
-	"os"
+	"sync"
 )
 
 type Invoker struct {
 	Port int
 }
 
-func readBook(nomeLivro string) string {
-	file, err := os.Open("./books/" + nomeLivro + ".txt")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer file.Close()
+var lcm lifecyclemanagement.LifecycleManager
+var mutex sync.Mutex
 
-	content, err := ioutil.ReadAll(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return string(content)
-}
+func handle_servant(servant *lifecyclemanagement.Servant, srh serverrequesthandlertcp.ServerRequestHandlerTCP) {
 
-func (invoker Invoker) Invoke() {
-	srh := serverrequesthandlertcp.NewServerRequestHandlerTCP(shared.N_HOST_SERVIDOR, invoker.Port)
 	marshall := marshaller.Marshaller{}
-
 	params := make([]interface{}, 1)
 	for {
 		msgBytes := srh.Receive()
@@ -41,8 +28,9 @@ func (invoker Invoker) Invoke() {
 
 		close := false
 		switch op {
-		case "Download":
-			book := readBook(pck.PackBody.Msg.BodyMsg.Body[0].(string))
+		case "DownloadBook":
+			servant.Update_life()
+			book := servant.Impl.DownloadBook(pck.PackBody.Msg.BodyMsg.Body[0].(string))
 			params[0] = book
 		case "Close":
 			params[0] = "Closed Connection"
@@ -63,8 +51,29 @@ func (invoker Invoker) Invoke() {
 		msgToClientBytes := marshall.Marshall(pckg)
 
 		srh.Send(msgToClientBytes)
-		if close {
+		if close || servant.IsExpired() {
 			srh.CloseConn()
+			break
 		}
+	}
+
+	mutex.Lock()
+	lcm.ReturnServant(servant)
+	mutex.Unlock()
+}
+
+func (invoker Invoker) Invoke() {
+	srh := serverrequesthandlertcp.NewServerRequestHandlerTCP(shared.N_HOST_SERVIDOR, invoker.Port)
+
+	lcm := lifecyclemanagement.NewLifecycleManager(10, 50)
+	lcm.Pooling()
+
+	go lcm.Leasing()
+
+	for {
+		srh.Accept() // Aceita conexão...
+
+		servant := lcm.GetServant()
+		go handle_servant(servant, srh)
 	}
 }
