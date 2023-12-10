@@ -6,6 +6,7 @@ import (
 	"Middleware/Distribution/miop"
 	"Middleware/Infrastructure/serverrequesthandlertcp"
 	shared "Middleware/Shared"
+	"fmt"
 	"sync"
 )
 
@@ -33,25 +34,28 @@ func handle_servant(servant *lifecyclemanagement.Servant, srh serverrequesthandl
 			book := servant.Impl.DownloadBook(pck.PackBody.Msg.BodyMsg.Body[0].(string))
 			params[0] = book
 		case "Close":
-			params[0] = "Closed Connection"
 			close = true
 		}
 
-		msgHeader := miop.MessageHeader{
-			Context: "Response", RequestId: 0, Status: 1,
+		if !close {
+			msgHeader := miop.MessageHeader{
+				Context: "Response", RequestId: 0, Status: 1,
+			}
+
+			msgBody := miop.MessageBody{Body: params}
+
+			packHeader := miop.PacketHeader{Version: "1.0", ByteOrder: true, MessageType: shared.MIOP_REPLY, Magic: "MIOP"}
+			packBody := miop.PacketBody{Msg: miop.Message{HeaderMsg: msgHeader, BodyMsg: msgBody}}
+
+			pckg := miop.Packet{PackHeader: packHeader, PackBody: packBody}
+
+			msgToClientBytes := marshall.Marshall(pckg)
+
+			srh.Send(msgToClientBytes)
 		}
 
-		msgBody := miop.MessageBody{Body: params}
-
-		packHeader := miop.PacketHeader{Version: "1.0", ByteOrder: true, MessageType: shared.MIOP_REPLY, Magic: "MIOP"}
-		packBody := miop.PacketBody{Msg: miop.Message{HeaderMsg: msgHeader, BodyMsg: msgBody}}
-
-		pckg := miop.Packet{PackHeader: packHeader, PackBody: packBody}
-
-		msgToClientBytes := marshall.Marshall(pckg)
-
-		srh.Send(msgToClientBytes)
 		if close || servant.IsExpired() {
+			fmt.Println("Expirou")
 			srh.CloseConn()
 			break
 		}
@@ -65,7 +69,7 @@ func handle_servant(servant *lifecyclemanagement.Servant, srh serverrequesthandl
 func (invoker Invoker) Invoke() {
 	srh := serverrequesthandlertcp.NewServerRequestHandlerTCP(shared.N_HOST_SERVIDOR, invoker.Port)
 
-	lcm := lifecyclemanagement.NewLifecycleManager(10, 50)
+	lcm := lifecyclemanagement.NewLifecycleManager(10, 5)
 	lcm.Pooling()
 
 	go lcm.Leasing()
@@ -74,6 +78,7 @@ func (invoker Invoker) Invoke() {
 		srh.Accept() // Aceita conexão...
 
 		servant := lcm.GetServant()
+		fmt.Println(servant)
 		go handle_servant(servant, srh)
 	}
 }

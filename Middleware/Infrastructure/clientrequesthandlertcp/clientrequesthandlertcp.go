@@ -38,7 +38,7 @@ func NewClientRequestHandlerTCP(hostToConn string, portToConn int) *ClientReques
 func (crh *ClientRequestHandlerTCP) Connection() {
 	// Função para criar a conexão com o servidor
 	isActive := func(c net.Conn) bool {
-		one := []byte{}
+		one := make([]byte, 1)
 		c.SetReadDeadline(time.Now().Add(1 * time.Millisecond))
 		_, err := c.Read(one)
 		if err == io.EOF {
@@ -51,6 +51,9 @@ func (crh *ClientRequestHandlerTCP) Connection() {
 	if crh.clientConn != nil {
 		if isActive(crh.clientConn) {
 			return
+		} else {
+			crh.clientConn.Close()
+			crh.clientConn = nil
 		}
 	}
 

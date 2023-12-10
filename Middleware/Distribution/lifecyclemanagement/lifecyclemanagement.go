@@ -41,6 +41,12 @@ func (lcm *LifecycleManager) Pooling() {
 func (lcm *LifecycleManager) GetServant() *Servant {
 
 	var servant *Servant
+	servant = nil
+
+	if len(lcm.pool) == 0 {
+		lcm.Pooling()
+	}
+
 	for i := 0; i < len(lcm.pool); i++ {
 		if lcm.pool[i].available {
 			servant = lcm.pool[i]
@@ -54,16 +60,16 @@ func (lcm *LifecycleManager) GetServant() *Servant {
 }
 
 func (lcm *LifecycleManager) ReturnServant(servant *Servant) {
+	mutex.Lock()
 	for i := 0; i < len(lcm.pool); i++ {
 		if lcm.pool[i] == servant {
-			mutex.Lock()
 			lcm.pool[i].available = true
 			lcm.pool[i].expired = false
 			lcm.pool[i].time = time.Now()
-			mutex.Unlock()
 			break
 		}
 	}
+	mutex.Unlock()
 }
 
 func (lcm *LifecycleManager) Leasing() {
